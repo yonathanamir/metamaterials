@@ -80,6 +80,21 @@ function build_resonator(L₀, C₀, L₁, C₁, L₂, C₂, dx, num_cells_1, nu
     return board
 end
 
+function build_gap_change(L₀, C₀, L₁, C₁, L₂, C₂, dx, num_cells_1, num_cells_2, number_of_tls)
+    L₀_element = series_element(z_inductor(L₀*dx))
+    C₀_element = shunt_element(z_capacitor(C₀*dx))
+    L₁_element = shunt_element(z_inductor(L₁))
+    C₁_element = series_element(z_capacitor(C₁))
+    L₂_element = shunt_element(z_inductor(L₂))
+    C₂_element = series_element(z_capacitor(C₂))
+
+
+    cell1 = vcat([L₁_element, C₁_element], repeat([L₀_element, C₀_element], number_of_tls))
+    cell2 = vcat([L₂_element, C₂_element], repeat([L₀_element, C₀_element], number_of_tls))
+    board = vcat(repeat(cell1, num_cells_1), repeat(cell2, num_cells_2))
+    return board
+end
+
 function sim_board(board, ωs)
     all_r_values = []
     probe = [1, 1/50]
@@ -101,8 +116,9 @@ function sim_board(board, ωs)
     return data
 end
 
+ωs = collect(0.5e9: 1e7: 7e9) * 2π 
+
 ## Manual Run
-ωs = collect(1e9: 1e7: 14e9) * 2π 
 
 d = 0.009
 number_of_tls = 20
@@ -119,24 +135,63 @@ C₀ = 1/(ω2^2*L*d)
 
 board = build_simple_board(L₀, C₀, L, C, dx, num_cells, number_of_tls)
 sim_results = sim_board(board, ωs)
-display(heatmap(1:size(sim_results)[2], ωs/2π, sim_results, title="L₀=$L₀, C₀=$C₀"))
+# display(heatmap(1:size(sim_results)[2], ωs/2π, sim_results, title="L₀=$L₀, C₀=$C₀"))
+display(heatmap(1:size(sim_results)[2], ωs/2π, sim_results))
 gui()
 
-## Resonator
+## 2 Parts
+# print("Insert title: ")
+# title = readline()
+d = 0.009
+number_of_tls = 20
+dx = d/number_of_tls
 
-num_cells_1 = 2
-num_cells_2 = 4
+num_cells_1 = 5
+num_cells_2 = 5
 
+L₀ = 7.84e-7
+C₀ = 8.1e-11
 
-L₁ = 6.8e-9
-C₁ = 2e-12
-L₂ = L₁/100
-C₂ = C₁/100
+L₁ = 1e-9
+C₁ = 1.5-12
+L₂ = 8.2e-9
+C₂ = 1.5e-12
 
-board = build_resonator(L₀, C₀, L₁, C₁, L₂, C₂, dx, num_cells_1, num_cells_2, number_of_tls)
+# title="High to Low"
+# board = build_gap_change(L₀, C₀, L₁, C₁, L₂, C₂, dx, num_cells_1, num_cells_2, number_of_tls)
+
+title="Low to High"
+board = build_gap_change(L₀, C₀, L₂, C₂, L₁, C₁, dx, num_cells_1, num_cells_2, number_of_tls)
+
 sim_results = sim_board(board, ωs)
-display(heatmap(1:size(sim_results)[2], ωs/2π, sim_results, title="Resonator"))
-gui()
+display(heatmap(1:size(sim_results)[2], ωs/2π, sim_results, title=title))
+# gui()
+
+## 3 Parts
+d = 0.009
+number_of_tls = 20
+dx = d/number_of_tls
+
+num_cells_1 = 3
+num_cells_2 = 3
+
+L₀ = 7.84e-7
+C₀ = 8.1e-11
+
+L₁ = 1e-9
+C₁ = 1.5-12
+L₂ = 8.2e-9
+C₂ = 1.5e-12
+
+# title="3 Parts High Low High"
+# board = build_resonator(L₀, C₀, L₁, C₁, L₂, C₂, dx, num_cells_1, num_cells_2, number_of_tls)
+
+title="3 Parts Low High Low"
+board = build_resonator(L₀, C₀, L₂, C₂, L₁, C₁, dx, num_cells_1, num_cells_2, number_of_tls)
+
+sim_results = sim_board(board, ωs)
+display(heatmap(1:size(sim_results)[2], ωs/2π, sim_results, title=title))
+
 
 ## Permutations
 # Permute omegas

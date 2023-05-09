@@ -93,6 +93,27 @@ function build_gap_change(L₀, C₀, L₁, C₁, L₂, C₂, dx, num_cells_1, n
     return board
 end
 
+function build_3_section_baord(L₀, C₀, L₁, C₁, L₂, C₂, L₃, C₃, dx, num_cells_1, num_cells_2, num_cells_3, number_of_tls)
+    L₀_element = series_element(z_inductor(L₀*dx))
+    C₀_element = shunt_element(z_capacitor(C₀*dx))
+    
+    L₁_element = shunt_element(z_inductor(L₁))
+    C₁_element = series_element(z_capacitor(C₁))
+    cell1 = vcat([L₁_element, C₁_element], repeat([L₀_element, C₀_element], number_of_tls))
+    
+    L₂_element = shunt_element(z_inductor(L₂))
+    C₂_element = series_element(z_capacitor(C₂))
+    cell2 = vcat([L₂_element, C₂_element], repeat([L₀_element, C₀_element], number_of_tls))
+
+    L₃_element = shunt_element(z_inductor(L₃))
+    C₃_element = series_element(z_capacitor(C₃))
+    cell3 = vcat([L₃_element, C₃_element], repeat([L₀_element, C₀_element], number_of_tls))
+
+
+    board = vcat(repeat(cell1, num_cells_1), repeat(cell2, num_cells_2), repeat(cell3, num_cells_3))
+    return board
+end
+
 function sim_board(board, ωs)
     all_r_values = []
     probe = [1, 1/50]

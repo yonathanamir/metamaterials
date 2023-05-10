@@ -4,48 +4,94 @@ using PlotlyJS
 include("./abcd_sim.jl")
 include("./components.jl")
 
-app = dash()
+app = dash(assets_folder="./assests")
 
-app.layout = html_div() do
-    html_div(
-        children = [
+app.layout = html_div(
+        className="container",
+        children=[
             html_div(
-                children = [
-                    html_h2("board configuration"),
-                    "C0:", dcc_input(id="c0", value=8.103e-11, type="number"),
-                    "L0:", dcc_input(id="l0", value=7.837e-7, type="number"),
-                    "d (mm):", dcc_input(id="d", value=9e-3, type="number"),
-                    "num tls:", dcc_input(id="num_tls", value=20, type="number"),
-                ]
+                className="left-column",
+                children=[
+                    html_div(
+                        className="board-section",
+                        children=[
+                            html_h2("board configuration", className="section-title"),
+                            "C0:", dcc_input(
+                                id="c0",
+                                value=8.103e-11,
+                                type="number",
+                                className="input-field"
+                            ),
+                            "L0:", dcc_input(
+                                id="l0",
+                                value=7.837e-7,
+                                type="number",
+                                className="input-field"
+                            ),
+                            "d (mm):", dcc_input(
+                                id="d",
+                                value=9e-3,
+                                type="number",
+                                className="input-field"
+                            ),
+                            "num tls:", dcc_input(
+                                id="num_tls",
+                                value=20,
+                                type="number",
+                                className="input-field"
+                            ),
+                        ],
+                    ),
+                    html_div(
+                        className="metamaterial-section",
+                        children=[
+                            html_h2("metamaterial configuration", className="section-title"),
+                            gui_section(1, "gui-section"),
+                            gui_section(2, "gui-section"),
+                            gui_section(3, "gui-section"),
+                        ],
+                    ),
+                    html_div(
+                        className="scan-section",
+                        children=[
+                            html_h2("scan configuration", className="section-title"),
+                            "start:", dcc_input(
+                                id="start",
+                                value=4000000000,
+                                type="number",
+                                className="input-field"
+                            ),
+                            "stop:", dcc_input(
+                                id="stop",
+                                value=84000000000,
+                                type="number",
+                                className="input-field"
+                            ),
+                            "step:", dcc_input(
+                                id="step",
+                                value=300000000,
+                                type="number",
+                                className="input-field"
+                            ),
+                            html_button("run", id="run", n_clicks=0, className="run-button"),
+                        ],
+                    ),
+                ],
             ),
             html_div(
-                children = [
-                    html_h2("metamaterial configuration"),
-                    gui_section(1),
-                    gui_section(2),
-                    gui_section(3)
-                ]
-            ),
-            html_div(
-                children = [
-                    html_h2("scan configuration"),
-                    "start:", dcc_input(id="start", value=4000000000, type="number"),
-                    "stop:", dcc_input(id="stop", value=84000000000, type="number"),
-                    "step:", dcc_input(id="step", value=300000000, type="number"),
-                    html_button(id = "run", children = "run", n_clicks = 0),
-                ]
+                className="right-column",
+                children=[
+                    html_div(
+                        className="heatmap-container",
+                        children=[
+                            html_h1("Heatmap: ", className="heatmap-title"),
+                            dcc_graph(id="heatmap-graph", className="heatmap-graph"),
+                        ],
+                    ),
+                ],
             ),
         ],
-        style = (width = "48%", display = "inline-block", float="left"),
-    ),
-    html_div(
-        children = [
-            html_h1("Heatmap: "),
-            dcc_graph(id = "heatmap-graph")
-        ],
-        style = (width = "48%", display = "inline-block", float="right"),
     )
-end
 
 callback!(
     app,

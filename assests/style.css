@@ -1,0 +1,71 @@
+/* Wrapper container for the entire layout */
+.container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+  }
+  
+  /* Left column container */
+  .left-column {
+    width: 48%;
+    display: inline-block;
+    float: left;
+  }
+  
+  /* Right column container */
+  .right-column {
+    width: 48%;
+    display: inline-block;
+    float: right;
+  }
+  
+  /* Board configuration section */
+  .board-section {
+    margin-bottom: 20px;
+  }
+  
+  /* Metamaterial configuration section */
+  .metamaterial-section {
+    margin-bottom: 20px;
+  }
+  
+  /* Scan configuration section */
+  .scan-section {
+    margin-bottom: 20px;
+  }
+  
+  /* Section title */
+  .section-title {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  
+  /* Input fields */
+  .input-field {
+    margin-bottom: 10px;
+  }
+  
+  /* Run button */
+  .run-button {
+    margin-top: 10px;
+  }
+  
+  /* Heatmap container */
+  .heatmap-container {
+    margin-top: 20px;
+  }
+  
+  /* Heatmap title */
+  .heatmap-title {
+    font-size: 2em;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  
+  /* Heatmap graph */
+  .heatmap-graph {
+    width: 100%;
+  }
+  

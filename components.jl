@@ -2,8 +2,9 @@ using Dash
 
 include("./omegas.jl")
 
-function gui_section(id)
+function gui_section(id, class_name)
     return html_div(
+        className = class_name,
         children = [
             "Section $(id): ",
             "C ",

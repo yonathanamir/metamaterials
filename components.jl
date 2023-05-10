@@ -18,7 +18,7 @@ function gui_section(id, class_name)
                         options = [(label = "$(x*1e9) nH", value=x) for x in inductance_array],
                     ),
             "cells ",
-            dcc_input(id="cells$(id)", value=0, type="number")
+            dcc_input(id="cells$(id)", value=0, type="number", className="input-field")
         ]
     )
 end

@@ -90,9 +90,8 @@ function shunt_element(z_func)
     return _inner
 end
 
-function r_value(x)
-    return log(abs(x[1])) 
-    # return real((x[1] + 50*x[2])/(x[1] - 50*x[2]))
+function r_value(x, func = abs)
+    return func(x[1])
 end
 
 function build_simple_board(L₀, C₀, L, C, dx, num_cells, number_of_tls)
@@ -176,7 +175,7 @@ function build_board(L₀, C₀, sections::Vector{Section}, dx, number_of_tls)
     return board
 end
 
-function sim_board(board, ωs)
+function sim_board(board, ωs, func=abs)
     all_r_values = []
     probe = [1, 1/50]
 
@@ -188,11 +187,12 @@ function sim_board(board, ωs)
             global probe
             abcd = step(ω)
             probe = abcd*probe
-            append!(ω_r_values, r_value(probe))
+            append!(ω_r_values, r_value(probe, func))
         end
         append!(all_r_values, ω_r_values)
     end
 
-    data = transpose(reshape(all_r_values, length(board), length(ωs)))[:,end:-1:1]
-    return data
+    # data = reshape(all_r_values, length(board), length(ωs))[:,end:-1:1]
+    data = reshape(all_r_values, length(board), length(ωs))[end:-1:1,:]
+    return Matrix{Float64}(data)
 end

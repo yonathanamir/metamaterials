@@ -43,11 +43,17 @@ function permutate_possibilities(d, L₀, C₀, min_f=1.5e9, min_gap=0.5e9, max_
     return sorted
 end
 
-function get_ωs(d, L₀, C₀, L, C)
-    ω1 = 1/(2π*sqrt(L₀*C*d))
-    ω2 = 1/(2π*sqrt(C₀*L*d))
+function get_fs(d, L₀, C₀, L, C)
+    f1 = 1/(2π*sqrt(L₀*C*d))
+    f2 = 1/(2π*sqrt(C₀*L*d))
 
-    return ω1, ω2
+    return f1, f2
+end
+
+function get_ωs(d, L₀, C₀, L, C)
+    f1, f2 = get_ωs(d, L₀, C₀, L, C)
+
+    return f1*2π, f2*2π
 end
 
 function z_capacitor(C)
@@ -173,6 +179,21 @@ function build_board(L₀, C₀, sections::Vector{Section}, dx, number_of_tls)
     board = reduce(vcat, cells)
     println(size(board))
     return board
+end
+
+function build_bragg_sections(L₀, C₀, section1::Section, section2::Section, dx, number_of_tls)
+    total_cells = section1.num_cells + section2.num_cells
+    
+    sections = Section[]
+    for i in 1:total_cells
+        if i % 2 == 0
+            push!(sections, Section(section1.L, section1.C, 1))
+        else
+            push!(sections, Section(section2.L, section2.C, 1))
+        end
+    end
+    return sections
+    # return build_board(L₀, C₀, sections, dx, number_of_tls)
 end
 
 function sim_board(board, ωs, func=abs)

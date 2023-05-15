@@ -13,6 +13,7 @@ fftdata = nothing
 sections = nothing
 possibilities = nothing
 clicked_y = nothing
+bands = nothing
 
 app.layout = html_div(
         className="container",
@@ -59,7 +60,15 @@ app.layout = html_div(
                         children=[
                             gui_section(1, "gui-section"),
                             gui_section(2, "gui-section"),
-                            gui_section(3, "gui-section")
+                            gui_section(3, "gui-section"),
+                            gui_section(4, "gui-section"),
+                            gui_section(5, "gui-section"),
+                            dcc_checklist(
+                                id="bragg-check",
+                                options = [
+                                    Dict("label" => "Bragg Mirror", "value" => "mirror") 
+                                ]
+                            )
                         ]
                     ),
                     html_div(
@@ -179,23 +188,31 @@ callback!(
     State("d", "value"),
     State("num_tls", "value"),
     State("c1", "value"),
-    State("c2", "value"),
-    State("c3", "value"),
     State("l1", "value"),
-    State("l2", "value"),
-    State("l3", "value"),
     State("cells1", "value"),
+    State("c2", "value"),
+    State("l2", "value"),
     State("cells2", "value"),
+    State("c3", "value"),
+    State("l3", "value"),
     State("cells3", "value"),
+    State("c4", "value"),
+    State("l4", "value"),
+    State("cells4", "value"),
+    State("c5", "value"),
+    State("l5", "value"),
+    State("cells5", "value"),
     State("start", "value"),
     State("step", "value"),
-    State("stop", "value")
-) do n_clicks, simfunc, fftfunc, c0, l0, d, num_tls, c1, c2, c3, l1, l2, l3, cells1, cells2, cells3, start, step, stop
+    State("stop", "value"),
+    State("bragg-check", "value")
+) do n_clicks, simfunc, fftfunc, c0, l0, d, num_tls, c1, l1, cells1, c2, l2, cells2, c3, l3, cells3, c4, l4, cells4, c5, l5, cells5, start, step, stop, bragg
     global data
     global fftdata
     global dx
     global ωs
     global xs
+    global bands
 
     sections = Vector{Section}()
 
@@ -211,20 +228,39 @@ callback!(
         push!(sections, Section(l3, c3, cells3))
     end
 
-    if ~isempty(sections)
-        dx = d/num_tls
-        ωs = collect(start:step:stop) .* 2π
+    if l4 !== nothing && c4 !== nothing && cells4 !== nothing
+        push!(sections, Section(l4, c4, cells4))
+    end
 
+    if l5 !== nothing && c5 !== nothing && cells5 !== nothing
+        push!(sections, Section(l5, c5, cells5))
+    end
+    
+    dx = d/num_tls
+
+    if bragg !== nothing && "mirror" in bragg
+        sections = build_bragg_sections(l0, c0, sections[1], sections[2], dx, num_tls)
+    end
+
+    bands = []
+    for s in sections
+        f1, f2 = get_fs(d, l0, c0, s.L, s.C)
+        push!(bands, (f1=f1, f2=f2, length=s.num_cells))
+    end
+
+    if ~isempty(sections)
+        ωs = collect(start:step:stop) .* 2π
 
         simfunc = choice_to_func(simfunc)
         fftfunc = choice_to_func(fftfunc)
-
+        
         board = build_board(l0, c0, sections, dx, num_tls)
+        
         println("Board built.")
         data = sim_board(board, ωs, simfunc)
         println("Sim done.")
 
-        xs = collect(1:size(data,1)) .* dx
+        xs = collect(1:size(data,1)) .* dx/2
         
         println("Data size: $(size(data)), ωs size: $(size(ωs))")
         
@@ -244,36 +280,52 @@ callback!(
     Output("heatmap-graph", "figure"),
     Input("heatmap-caxis-slider", "value"),
     Input("heatmap-graph", "clickData"),
-    Input("invs", "children")
-) do caxis_value, clickData, children
+    Input("invs", "children"),
+    State("d", "value"),
+) do caxis_value, clickData, children, d
     global data
     global ωs
     global xs
     global clicked_y
 
     if data !== nothing
+        traces = AbstractTrace[]
+        
         z = unpack_heatmap(data);
         h = PlotlyJS.heatmap(x=xs, y=ωs./2π, z=z, title="Board Scan", zmin=-caxis_value, zmax=caxis_value);
+        push!(traces, h)
 
-        if clicked_y !== nothing
-            # TODO: Add line
-            # line_data = [clicked_y for i in 1:size(data,1)]
-            # line_graph = PlotlyJS.line(x=xs, y=line_data, line=(color="red", width=2), title="Horizontal Line")
-            println(clicked_y)
+        if bands !== nothing
+            total_length = sum([x.length for x in bands])
 
-            # layout = Layout(
-            #     title = "Simulation Result",
-            #     scene = attr(
-            #         xaxis_title = "Frequency (Hz)",
-            #         yaxis_title = "Input Voltage (V)"
-            #     )
-            # )
+            xcursor = 0
+            for band in bands
+                relative_length = band.length*xs[end]/total_length
+                xstart = xcursor
+                xend = xstart + relative_length
 
-            # return Plot([h, line_graph], layout)
-            # h.add_hline(y=clicked_y)
+                println("$xstart, $xend")
+
+                push!(traces, PlotlyJS.scatter(x=[xstart, xend], y=[band.f1, band.f1], mode="lines", line_color="rgba(0,0,0,0.5)"))
+                push!(traces, PlotlyJS.scatter(x=[xstart, xend], y=[band.f2, band.f2], mode="lines", line_color="rgba(0,0,0,0.5)"))
+                xcursor = xend
+            end
         end
 
-        return PlotlyJS.plot(h)
+        if clicked_y !== nothing
+            line_data = [clicked_y for i in 1:size(data,1)]
+            line_graph = PlotlyJS.scatter(x=xs, y=line_data, mode="lines", line_color="rgba(255,255,255,0.5)")
+            push!(traces, line_graph)
+        end
+
+        layout = Layout(
+            title = "Simulation Result",
+            scene = attr(
+                xaxis_title = "Board Location (m)",
+                yaxis_title = "Frequency (Hz)"
+            )
+        )
+        return PlotlyJS.plot(traces, layout)
     else
         return PlotlyJS.plot(zeros((1,1)))
     end
@@ -290,7 +342,6 @@ callback!(
     global xs
 
     if fftdata !== nothing
-        # xs = collect(1:size(fftdata,1)) .* dx
         z = unpack_heatmap(fftdata)
         fft_heatmap = PlotlyJS.heatmap(x=xs, y=ωs./2π, z=z, zmin=0, zmax=caxis_value, title="X-Axis FFT");
         return PlotlyJS.plot(fft_heatmap)
@@ -309,9 +360,9 @@ callback!(
         global ωs
         global xs
         global clicked_y
-
-        ω = clickdata.points[1].y * 2π
-        clicked_y = ω
+        
+        clicked_y = clickdata.points[1].y
+        ω =  clicked_y * 2π
 
         index = findall(x->x==ω, ωs)
         ys = data[:,index]
@@ -319,7 +370,6 @@ callback!(
         return PlotlyJS.plot(PlotlyJS.scatter(x=xs, y=ys, mode="lines", title="$ω"))
     end
     return PlotlyJS.plot(PlotlyJS.scatter(x=[0], y=[0], mode="markers"))
-    # graph = PlotlyJS.scatter(x=, y=,)
 end
 
 function unpack_heatmap(data)

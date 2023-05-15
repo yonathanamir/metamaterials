@@ -78,6 +78,10 @@
     border: 1px solid #ccc;
   }
 
+  #file-path {
+    width: 60%;
+  }
+
   .dash-dropdown {
     margin-left: 10px;
     margin-right: 10px;

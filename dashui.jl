@@ -24,30 +24,32 @@ app.layout = html_div(
                         className="board-section",
                         children=[
                             html_h2("Board Configuration", className="section-title"),
-                            "C0:", dcc_input(
-                                id="c0",
-                                value=8.103e-11,
-                                type="number",
-                                className="input-field"
-                            ),
-                            "L0:", dcc_input(
-                                id="l0",
-                                value=7.837e-7,
-                                type="number",
-                                className="input-field"
-                            ),
-                            "d (mm):", dcc_input(
-                                id="d",
-                                value=9e-3,
-                                type="number",
-                                className="input-field"
-                            ),
-                            "num tls:", dcc_input(
-                                id="num_tls",
-                                value=20,
-                                type="number",
-                                className="input-field"
-                            ),
+                            html_div(children = [
+                                "C0:", dcc_input(
+                                    id="c0",
+                                    value=8.103e-11,
+                                    type="number",
+                                    className="input-field"
+                                ),
+                                "L0:", dcc_input(
+                                    id="l0",
+                                    value=7.837e-7,
+                                    type="number",
+                                    className="input-field"
+                                ),
+                                "d (m):", dcc_input(
+                                    id="d",
+                                    value=9e-3,
+                                    type="number",
+                                    className="input-field"
+                                ),
+                                "num tls:", dcc_input(
+                                    id="num_tls",
+                                    value=20,
+                                    type="number",
+                                    className="input-field"
+                                )
+                        ]),
                         ],
                     ),
                     html_h2("Metamaterial Configuration", className="section-title"),
@@ -109,7 +111,7 @@ app.layout = html_div(
                                     ),
                                 ]
                             ),
-                            html_button("run", id="run", n_clicks=0, className="run-button"),
+                            html_button("Run", id="run", n_clicks=0, className="run-button"),
                             html_div(
                                 className="slice-container",
                                 children=[
@@ -144,6 +146,7 @@ app.layout = html_div(
                             html_div(id="invs")
                         ],
                     ),
+                    html_a("Tell us what you think!", href="mailto:yonathan.amir@mail.huji.ac.il,mordechai.gruda@mail.huji.ac.il")
                 ],
             ),
         ],

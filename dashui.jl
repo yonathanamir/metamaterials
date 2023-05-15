@@ -138,7 +138,7 @@ app.layout = html_div(
                                 className="fft-container",
                                 children=[
                                     dcc_graph(id="fft-graph", className="heatmap-graph"),
-                                    dcc_slider(id="fft-caxis-slider", min=0, max=1000, step=1, value=100, vertical=true),
+                                    dcc_slider(id="fft-caxis-slider", min=0, max=100, step=1, value=10, vertical=true),
                                 ]
                             ),
                             html_div(id="invs")
@@ -226,7 +226,7 @@ callback!(
         println("Data size: $(size(data)), ωs size: $(size(ωs))")
         
         fftdata = ([fftfunc.(fft(data[:,i])) for i in 1:size(data,2)])
-        fftdata = reduce(hcat,fftdata)
+        fftdata = reduce(hcat,fftdata)[end:-1:1,:]
         
         println("FFT size: $(size(fftdata))")        
         
@@ -289,7 +289,7 @@ callback!(
     if fftdata !== nothing
         # xs = collect(1:size(fftdata,1)) .* dx
         z = unpack_heatmap(fftdata)
-        fft_heatmap = PlotlyJS.heatmap(x=xs, y=ωs./2π, z=z, zmin=0, zmax=log(caxis_value), title="X-Axis FFT");
+        fft_heatmap = PlotlyJS.heatmap(x=xs, y=ωs./2π, z=z, zmin=0, zmax=caxis_value, title="X-Axis FFT");
         return PlotlyJS.plot(fft_heatmap)
     else
         return PlotlyJS.plot(zeros((1,1)))
